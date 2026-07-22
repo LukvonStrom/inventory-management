@@ -29,6 +29,18 @@
       @delete-task="deleteTask"
       @toggle-task="toggleTask"
     />
+
+    <GdprCookieBanner />
+
+    <WorksCouncilModal
+      :is-open="wcIsOpen"
+      :action-description="wcActionDescription"
+      @close="wcHandleClose"
+      @approve="wcHandleClose"
+      @override="wcHandleOverride"
+    />
+
+    <RightToDisconnectBanner />
   </div>
 </template>
 
@@ -37,11 +49,15 @@ import { ref, onMounted, computed } from 'vue'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useBrainrot } from './composables/useBrainrot'
+import { useWorksCouncil } from './composables/useWorksCouncil'
 import FilterBar from './components/FilterBar.vue'
 import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
 import TasksModal from './components/TasksModal.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import BrainrotPanel from './components/BrainrotPanel.vue'
+import GdprCookieBanner from './components/GdprCookieBanner.vue'
+import WorksCouncilModal from './components/WorksCouncilModal.vue'
+import RightToDisconnectBanner from './components/RightToDisconnectBanner.vue'
 
 export default {
   name: 'App',
@@ -50,11 +66,15 @@ export default {
     ProfileDetailsModal,
     TasksModal,
     AppSidebar,
-    BrainrotPanel
+    BrainrotPanel,
+    GdprCookieBanner,
+    WorksCouncilModal,
+    RightToDisconnectBanner
   },
   setup() {
     const { currentUser } = useAuth()
     const { brainrotEnabled, toggle } = useBrainrot()
+    const { isOpen: wcIsOpen, actionDescription: wcActionDescription, handleOverride: wcHandleOverride, handleClose: wcHandleClose } = useWorksCouncil()
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
@@ -134,7 +154,11 @@ export default {
       deleteTask,
       toggleTask,
       brainrotEnabled,
-      toggle
+      toggle,
+      wcIsOpen,
+      wcActionDescription,
+      wcHandleOverride,
+      wcHandleClose
     }
   }
 }

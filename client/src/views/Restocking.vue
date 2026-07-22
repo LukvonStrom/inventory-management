@@ -1,5 +1,7 @@
 <template>
   <div class="restocking">
+    <EuAiActBanner page="restocking" />
+
     <div class="page-header">
       <h2>Restocking Planner</h2>
       <p>Prioritize restock orders based on demand forecasts and an adjustable budget.</p>
@@ -168,6 +170,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../api'
 import { useRestockingOrders } from '../composables/useRestockingOrders'
+import { useWorksCouncil } from '../composables/useWorksCouncil'
+import EuAiActBanner from '../components/EuAiActBanner.vue'
 
 const LEAD_TIME_DAYS = { increasing: 3, stable: 7, decreasing: 14 }
 
@@ -179,8 +183,10 @@ function formatDeliveryDate(leadTimeDays) {
 
 export default {
   name: 'Restocking',
+  components: { EuAiActBanner },
   setup() {
     const { submitOrder } = useRestockingOrders()
+    const { requireApproval } = useWorksCouncil()
 
     const loading = ref(true)
     const error = ref(null)
@@ -304,14 +310,23 @@ export default {
       }
     }
 
-    const handlePlaceOrder = () => {
-      if (recommended.value.length === 0) return
+    const placeOrderInternal = () => {
       submitOrder(recommended.value, budgetUsed.value)
       showSuccess.value = true
       budget.value = 0
       setTimeout(() => {
         showSuccess.value = false
       }, 3000)
+    }
+
+    const handlePlaceOrder = () => {
+      if (recommended.value.length === 0) return
+      if (budgetUsed.value > 5000) {
+        const description = `Place restocking order for $${budgetUsed.value.toLocaleString()} (${recommended.value.length} items)`
+        requireApproval(description, placeOrderInternal)
+      } else {
+        placeOrderInternal()
+      }
     }
 
     onMounted(loadData)
@@ -359,7 +374,7 @@ input[type="range"] {
 
 .budget-usage-text {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #4b5563;
   font-weight: 500;
 }
 
@@ -396,7 +411,7 @@ input[type="range"] {
 .empty-state {
   text-align: center;
   padding: 2rem;
-  color: #64748b;
+  color: #4b5563;
   font-size: 0.938rem;
 }
 

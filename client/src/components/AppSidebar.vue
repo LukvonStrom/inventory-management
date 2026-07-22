@@ -72,6 +72,21 @@
       </button>
     </div>
 
+    <!-- Compliance footer -->
+    <div class="compliance-footer" v-show="!isCollapsed">
+      <div class="cf-data-region">Data stored in EU-West-1 (Frankfurt)</div>
+      <div class="cf-badges-row">
+        <span class="cf-gdpr-badge">
+          <span class="cf-green-dot"></span>GDPR Compliant
+        </span>
+      </div>
+      <div class="cf-links-row">
+        <button class="cf-link" @click="openPrivacyPolicy">Privacy Policy</button>
+        <span class="cf-dot-sep">·</span>
+        <button class="cf-link" @click="openWhistleblower">Report a Concern</button>
+      </div>
+    </div>
+
     <!-- Footer: user profile + tools -->
     <div class="sidebar-footer">
       <button
@@ -181,6 +196,14 @@ export default {
       emit('tasks-click')
     }
 
+    const openPrivacyPolicy = () => {
+      alert('Privacy Policy: 40,000 words. Summary: we use your data to run this app.')
+    }
+
+    const openWhistleblower = () => {
+      alert('Your report has been received anonymously. Thank you for your courage.')
+    }
+
     return {
       isCollapsed,
       toggleCollapse,
@@ -192,7 +215,9 @@ export default {
       handleProfileClick,
       handleTasksClick,
       brainrotEnabled,
-      toggle
+      toggle,
+      openPrivacyPolicy,
+      openWhistleblower
     }
   }
 }
@@ -424,6 +449,72 @@ export default {
 .sidebar--collapsed .brainrot-btn {
   justify-content: center;
   padding: 7px;
+}
+
+/* ─── Compliance Footer ─────────────────────────────────────────────── */
+.compliance-footer {
+  padding: 6px 12px 4px;
+  border-top: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+}
+
+.cf-data-region {
+  font-size: 10px;
+  color: var(--sidebar-muted);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.cf-badges-row {
+  margin-bottom: 4px;
+}
+
+.cf-gdpr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--sidebar-muted);
+  font-weight: 500;
+}
+
+.cf-green-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  flex-shrink: 0;
+}
+
+.cf-links-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cf-link {
+  background: transparent;
+  border: none;
+  color: var(--sidebar-muted);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.15s;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: color 0.15s, text-decoration-color 0.15s;
+}
+
+.cf-link:hover {
+  color: var(--sidebar-text);
+  text-decoration-color: currentColor;
+}
+
+.cf-dot-sep {
+  font-size: 10px;
+  color: var(--sidebar-muted);
+  opacity: 0.6;
 }
 
 /* ─── Footer ────────────────────────────────────────────────────────── */

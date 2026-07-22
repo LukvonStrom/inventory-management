@@ -55,19 +55,19 @@
       <div class="stats-grid">
         <div class="stat-card success">
           <div class="stat-label">{{ t('status.delivered') }}</div>
-          <div class="stat-value">{{ getOrdersByStatus('Delivered').length }}</div>
+          <div class="stat-value">{{ orderCountByStatus['Delivered'] }}</div>
         </div>
         <div class="stat-card info">
           <div class="stat-label">{{ t('status.shipped') }}</div>
-          <div class="stat-value">{{ getOrdersByStatus('Shipped').length }}</div>
+          <div class="stat-value">{{ orderCountByStatus['Shipped'] }}</div>
         </div>
         <div class="stat-card warning">
           <div class="stat-label">{{ t('status.processing') }}</div>
-          <div class="stat-value">{{ getOrdersByStatus('Processing').length }}</div>
+          <div class="stat-value">{{ orderCountByStatus['Processing'] }}</div>
         </div>
         <div class="stat-card danger">
           <div class="stat-label">{{ t('status.backordered') }}</div>
-          <div class="stat-value">{{ getOrdersByStatus('Backordered').length }}</div>
+          <div class="stat-value">{{ orderCountByStatus['Backordered'] }}</div>
         </div>
       </div>
 
@@ -151,11 +151,22 @@ export default {
       getCurrentFilters
     } = useFilters()
 
+    const debounce = (fn, delay) => {
+      let t
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay) }
+    }
+
+    let abortController = null
+
     const loadOrders = async () => {
+      if (abortController) abortController.abort()
+      abortController = new AbortController()
+      const { signal } = abortController
+      loading.value = true
+      error.value = null
       try {
-        loading.value = true
         const filters = getCurrentFilters()
-        const fetchedOrders = await api.getOrders(filters)
+        const fetchedOrders = await api.getOrders(filters, { signal })
 
         // Sort orders by order_date (earliest first)
         orders.value = fetchedOrders.sort((a, b) => {
@@ -164,20 +175,21 @@ export default {
           return dateA - dateB
         })
       } catch (err) {
+        if (err.name === 'CanceledError' || err.name === 'AbortError') return
         error.value = 'Failed to load orders: ' + err.message
       } finally {
-        loading.value = false
+        if (!signal.aborted) loading.value = false
       }
     }
 
-    // Watch for filter changes and reload data
-    watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
-      loadOrders()
-    })
+    // Watch for filter changes and reload data (debounced to prevent rapid re-fetches)
+    watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], debounce(loadOrders, 250))
 
-    const getOrdersByStatus = (status) => {
-      return orders.value.filter(order => order.status === status)
-    }
+    const orderCountByStatus = computed(() => {
+      const map = { Delivered: 0, Shipped: 0, Processing: 0, Backordered: 0 }
+      for (const o of orders.value) map[o.status] = (map[o.status] || 0) + 1
+      return map
+    })
 
     const getOrderStatusClass = (status) => {
       const statusMap = {
@@ -207,7 +219,7 @@ export default {
       error,
       orders,
       submittedOrders,
-      getOrdersByStatus,
+      orderCountByStatus,
       getOrderStatusClass,
       formatDate,
       currencySymbol,
@@ -321,7 +333,7 @@ export default {
 
 .item-meta {
   font-size: 0.813rem;
-  color: #64748b;
+  color: #4b5563;
 }
 
 .badge.submitted {

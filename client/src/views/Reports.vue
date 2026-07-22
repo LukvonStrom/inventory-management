@@ -296,7 +296,7 @@ export default {
   padding: 0.75rem;
   text-align: left;
   font-weight: 600;
-  color: #64748b;
+  color: #4b5563;
   border-bottom: 2px solid #e2e8f0;
 }
 
@@ -352,7 +352,7 @@ export default {
 .bar-label {
   margin-top: 1.5rem;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #4b5563;
   text-align: center;
   transform: rotate(-45deg);
   white-space: nowrap;
@@ -375,7 +375,7 @@ export default {
 
 .stat-label {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #4b5563;
   margin-bottom: 0.5rem;
 }
 
@@ -420,7 +420,7 @@ export default {
 .loading {
   text-align: center;
   padding: 3rem;
-  color: #64748b;
+  color: #4b5563;
 }
 
 .error {
