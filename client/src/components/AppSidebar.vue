@@ -8,7 +8,7 @@
           <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
         </svg>
       </div>
-      <span v-show="!isCollapsed" class="sidebar-company-name">{{ t('nav.companyName') }}</span>
+      <span class="sidebar-company-name">{{ t('nav.companyName') }}</span>
     </div>
 
     <!-- Navigation -->
@@ -20,6 +20,7 @@
         class="nav-item"
         :class="{ active: isItemActive(item) }"
         :title="isCollapsed ? item.label : undefined"
+        :aria-current="isItemActive(item) ? 'page' : undefined"
       >
         <!-- eslint-disable-next-line vue/no-v-html -->
         <svg
@@ -32,7 +33,7 @@
           stroke-linejoin="round"
           v-html="item.iconHtml"
         ></svg>
-        <span v-show="!isCollapsed" class="nav-label">{{ item.label }}</span>
+        <span class="nav-label">{{ item.label }}</span>
       </router-link>
 
       <!-- Collapse toggle -->
@@ -56,6 +57,21 @@
       </button>
     </nav>
 
+    <!-- Brainrot Mode toggle -->
+    <div class="brainrot-section" :class="{ 'brainrot-on': brainrotEnabled }">
+      <button
+        class="brainrot-btn"
+        @click="toggle"
+        :title="isCollapsed ? 'Brainrot Mode' : undefined"
+      >
+        <span class="brainrot-icon">⚡</span>
+        <span class="brainrot-label">Brainrot Mode</span>
+        <div class="toggle-track" :class="{ on: brainrotEnabled }">
+          <div class="toggle-thumb"></div>
+        </div>
+      </button>
+    </div>
+
     <!-- Footer: user profile + tools -->
     <div class="sidebar-footer">
       <button
@@ -64,7 +80,7 @@
         :title="isCollapsed ? currentUser.name : undefined"
       >
         <div class="footer-avatar">{{ getInitials(currentUser.name) }}</div>
-        <span v-show="!isCollapsed" class="footer-user-name">{{ currentUser.name }}</span>
+        <span class="footer-user-name">{{ currentUser.name }}</span>
       </button>
 
       <div class="footer-tools">
@@ -90,6 +106,7 @@ import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { useI18n } from '../composables/useI18n'
+import { useBrainrot } from '../composables/useBrainrot'
 import LanguageSwitcher from './LanguageSwitcher.vue'
 
 export default {
@@ -100,6 +117,8 @@ export default {
     const route = useRoute()
     const { currentUser, getInitials } = useAuth()
     const { t } = useI18n()
+
+    const { brainrotEnabled, toggle } = useBrainrot()
 
     const isCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true')
 
@@ -171,7 +190,9 @@ export default {
       getInitials,
       t,
       handleProfileClick,
-      handleTasksClick
+      handleTasksClick,
+      brainrotEnabled,
+      toggle
     }
   }
 }
@@ -192,15 +213,16 @@ export default {
 /* ─── Sidebar shell ─────────────────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-width);
-  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
   transition: width 0.2s ease;
   flex-shrink: 0;
-  /* overflow intentionally omitted here so footer dropdown is not clipped;
-     individual sections handle overflow as needed */
+  /* overflow intentionally omitted so footer dropdown is not clipped */
 }
 
 .sidebar--collapsed {
@@ -317,6 +339,91 @@ export default {
 
 .collapse-icon--rotated {
   transform: rotate(180deg);
+}
+
+/* ─── Brainrot toggle ───────────────────────────────────── */
+.brainrot-section {
+  margin: 4px 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.brainrot-section.brainrot-on {
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.brainrot-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.brainrot-btn:hover {
+  background: var(--sidebar-hover-bg);
+}
+
+.brainrot-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.brainrot-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--sidebar-text);
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Toggle switch */
+.toggle-track {
+  width: 30px;
+  height: 17px;
+  border-radius: 9px;
+  background: #d1d5db;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-track.on {
+  background: #3b82f6;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-track.on .toggle-thumb {
+  transform: translateX(13px);
+}
+
+.sidebar--collapsed .brainrot-btn {
+  justify-content: center;
+  padding: 7px;
 }
 
 /* ─── Footer ────────────────────────────────────────────────────────── */
@@ -451,6 +558,16 @@ export default {
 }
 
 /* ─── Collapsed-state overrides ─────────────────────────────────────── */
+
+/* Hide all text labels purely via CSS — no v-show, no Vue re-render flicker */
+.sidebar--collapsed .sidebar-company-name,
+.sidebar--collapsed .nav-label,
+.sidebar--collapsed .footer-user-name,
+.sidebar--collapsed .brainrot-label,
+.sidebar--collapsed .toggle-track {
+  display: none;
+}
+
 .sidebar--collapsed .footer-user {
   justify-content: center;
   padding: 7px;

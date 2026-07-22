@@ -4,11 +4,16 @@
       @profile-click="showProfileDetails = true"
       @tasks-click="showTasks = true"
     />
-    <div class="content-area">
-      <FilterBar />
-      <main class="main-content">
-        <router-view />
-      </main>
+    <div class="content-area" :class="{ 'brainrot-active': brainrotEnabled }">
+      <div class="content-top">
+        <FilterBar />
+        <main class="main-content">
+          <router-view />
+        </main>
+      </div>
+      <div v-if="brainrotEnabled" class="brainrot-pane">
+        <BrainrotPanel @close="toggle" />
+      </div>
     </div>
 
     <ProfileDetailsModal
@@ -31,10 +36,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
+import { useBrainrot } from './composables/useBrainrot'
 import FilterBar from './components/FilterBar.vue'
 import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
 import TasksModal from './components/TasksModal.vue'
 import AppSidebar from './components/AppSidebar.vue'
+import BrainrotPanel from './components/BrainrotPanel.vue'
 
 export default {
   name: 'App',
@@ -42,10 +49,12 @@ export default {
     FilterBar,
     ProfileDetailsModal,
     TasksModal,
-    AppSidebar
+    AppSidebar,
+    BrainrotPanel
   },
   setup() {
     const { currentUser } = useAuth()
+    const { brainrotEnabled, toggle } = useBrainrot()
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
@@ -123,7 +132,9 @@ export default {
       tasks,
       addTask,
       deleteTask,
-      toggleTask
+      toggleTask,
+      brainrotEnabled,
+      toggle
     }
   }
 }
@@ -158,6 +169,37 @@ body {
   background: #f8fafc;
 }
 
+/* ─── Brainrot split-screen layout ──────────────────────── */
+.content-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.content-area.brainrot-active {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-area.brainrot-active .content-top {
+  height: 60vh;
+  flex: 0 0 60vh;
+  overflow-y: auto;
+}
+
+.content-area.brainrot-active .main-content {
+  min-height: 0;
+}
+
+.brainrot-pane {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .main-content {
   flex: 1;
   max-width: 1600px;
@@ -179,7 +221,7 @@ body {
 }
 
 .page-header p {
-  color: #64748b;
+  color: #4b5563;
   font-size: 0.938rem;
 }
 
@@ -204,7 +246,7 @@ body {
 }
 
 .stat-label {
-  color: #64748b;
+  color: #4b5563;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -362,7 +404,7 @@ tbody tr:hover {
 .loading {
   text-align: center;
   padding: 3rem;
-  color: #64748b;
+  color: #4b5563;
   font-size: 0.938rem;
 }
 
